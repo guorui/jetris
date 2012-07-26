@@ -6,12 +6,8 @@ import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 
 public class GameCanvas extends Canvas {
@@ -19,45 +15,54 @@ public class GameCanvas extends Canvas {
 	private static final long serialVersionUID = 1L;
 	public static final int WIDTH = 360;
 	public static final int HEIGHT = 480;
+	//每个小方块的大小
 	public static final int TILE_SIZE = 24;
+	//方块下落速度
 	public static int speed = 300;
+	//小方块图片
 	private Image tileImg;
+	//背景图片
 	private Image bgImg;
+	//图片缓冲
 	private Image offImg;
+	//游戏结束画面
 	private Image gameOverImg;
 	private Graphics offG;
+	//当前正在下落的方块，变形后的
 	private int[][] tilePt;
+	//当前正在下落的方块，变形前的原始形状
 	private int[][] tilePtSrc;
+	//当前下落方块的坐标
 	private int x,y;
+	//屏幕有正在下落的方块
 	private boolean hasOne;
+	//代表一个方块可以变形的方块的索引
 	private int changeIndex = 0;
+	//同步使用
 	private Object obj = new Object();
+	//游戏结束标志
 	private boolean gameOver = false;
+	//背景地图
 	private int[][] map = new int[20][15];
+	//键盘操作的最后时间
 	public long lastOperateTime = new Date().getTime();
 	
 	public GameCanvas(){
+		//随机生成一种方块
 		tilePt = generateTiles();
+		//保存方块变形前的形状
 		tilePtSrc =tilePt;
+		//载入图片
 		loadImg();
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		setFocusable(true);
+		//添加键盘操作监听
 		addKeyListener(new TileKeyListener());
+		//方块下落的线程
 		new Thread(new TileDownRunnable()).start();
 	}
 	
 	private void loadImg() {
-//		File bgFile = new File("D:/resources/1.jpg");
-//		File tileFile = new File("D:/resources/2.jpg");
-//		File gameOverFile = new File("D:/resources/gameover.jpg");
-//		try {
-//			tileImg = ImageIO.read(tileFile);
-//			bgImg = ImageIO.read(bgFile);
-//			gameOverImg = ImageIO.read(gameOverFile);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		tileImg = CommonUtil.loadImage("img/2.jpg");
 		bgImg = CommonUtil.loadImage("img/1.jpg");
 		gameOverImg = CommonUtil.loadImage("img/gameover.jpg");
@@ -85,10 +90,17 @@ public class GameCanvas extends Canvas {
 		g.dispose();
 	}
 	
+	/**
+	 * 绘制游戏结束的画面
+	 * @param g
+	 */
 	private void drawGameOver(Graphics g) {
 		g.drawImage(gameOverImg, 0, 0, null);		
 	}
-
+	
+	/**
+	 * 画出需要呈现的所有方块
+	 */
 	private void drawAllTile(Graphics g) {
 		int len1 = map.length;
 		for(int i=0; i<len1; i++){
@@ -100,7 +112,11 @@ public class GameCanvas extends Canvas {
 			}
 		}		
 	}
-
+	
+	/**
+	 * 绘制随机生成的方块
+	 * @param g
+	 */
 	private void drawTiles(Graphics g) {
 		int len1 = tilePt.length;
 		for(int i=0; i<len1; i++){
@@ -112,11 +128,19 @@ public class GameCanvas extends Canvas {
 			}
 		}
 	}
-
+	
+	/**
+	 * 画背景
+	 * @param g
+	 */
 	private void drawBG(Graphics g) {
 		g.drawImage(bgImg, 0, 0, null);
 	}
-
+	
+	/**
+	 * 生成一种方块
+	 * @return
+	 */
 	private int[][] generateTiles(){
 		x=6;
 		y=0;
@@ -124,6 +148,11 @@ public class GameCanvas extends Canvas {
 		return pt;
 	}
 	
+	/**
+	 * 获取方块的宽度
+	 * @param pt
+	 * @return
+	 */
 	private int getTileWidth(int[][] pt) {
 		int len1 = pt.length;
 		int max = 0;
@@ -136,10 +165,20 @@ public class GameCanvas extends Canvas {
 		return max;
 	}
 	
+	/**
+	 * 获取方块的高度
+	 * @param pt
+	 * @return
+	 */
 	private int getTileHeight(int[][] pt) {
 		return pt.length;
 	}
 	
+	/**
+	 * 方块下落的线程
+	 * @author guorui
+	 *
+	 */
 	private class TileDownRunnable implements Runnable{
 
 		@Override
