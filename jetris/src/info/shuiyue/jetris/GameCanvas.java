@@ -190,24 +190,28 @@ public class GameCanvas extends Canvas {
 					hasOne = true;
 					changeIndex = 0;
 				}
+				
+				//方块在最顶端时，结束游戏
 				if(map[getTileHeight(tilePt)-1][x]==1){
 					gameOver = true;
 					try {
 						drawScreen();
-						Thread.sleep(4000);
+						Thread.sleep(5000);
 						reset();
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
+				
 				try {
 					Thread.sleep(speed);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-//				System.out.println("1****"+tilePt.length);
+				
+				//调节操作键盘时，方块下落速度问题
 				if(new Date().getTime()-lastOperateTime<speed){
 					try {
 						Thread.sleep(speed);
@@ -216,13 +220,16 @@ public class GameCanvas extends Canvas {
 						e.printStackTrace();
 					}
 				}
+				
 				synchronized (obj) {
+					//如果未碰撞，y加1
 					if(!checkCollision(tilePt,CommonUtil.DOWN)){
 						y++;
 					}else{
+						//改变地图状态
 						changeMapStatus(tilePt);
 					}
-//					System.out.println("2****"+tilePt.length);
+
 					drawScreen();					
 				}		
 			}
@@ -328,7 +335,11 @@ public class GameCanvas extends Canvas {
 		}			
 		return result;
 	}
-
+	
+	/**
+	 * 改变背景的状态，显示停止下落的方块，清除满格的行
+	 * @param pt
+	 */
 	private void changeMapStatus(int[][] pt){
 		int len1 = pt.length;
 		for(int i = 0; i<len1; i++){
@@ -338,12 +349,16 @@ public class GameCanvas extends Canvas {
 					map[y+i][x+j]=1;					
 				}
 			}
-		}		
+		}	
+		//清除方块满格的行
 		clearMap();
 		drawScreen();
 		hasOne = false;
 	}
 	
+	/**
+	 * 清除方块满一行的行
+	 */
 	private void clearMap() {
 		int mapLen1 = map.length;
 		for(int i=0; i<mapLen1; i++){
@@ -370,7 +385,11 @@ public class GameCanvas extends Canvas {
 			}
 		}
 	}
-
+	
+	/**
+	 * 键盘监听
+	 *
+	 */
 	private class TileKeyListener implements KeyListener{
 
 		@Override
@@ -383,6 +402,7 @@ public class GameCanvas extends Canvas {
 		public void keyPressed(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			switch(keyCode){
+				//向左移动
 				case KeyEvent.VK_LEFT :
 				synchronized (obj) {
 					if (!checkCollision(tilePt,CommonUtil.LEFT)) {
@@ -391,6 +411,7 @@ public class GameCanvas extends Canvas {
 					}
 				}
 				break;
+				//向右移动
 				case KeyEvent.VK_RIGHT:
 				synchronized (obj) {
 					if (!checkCollision(tilePt,CommonUtil.RIGHT)) {
@@ -399,11 +420,13 @@ public class GameCanvas extends Canvas {
 					}
 				}
 				break;
+				//变形
 				case KeyEvent.VK_UP:
 					synchronized (obj) {
 						changeTile();
 					}				
 					break;
+					//向下移动
 				case KeyEvent.VK_DOWN:
 				synchronized (obj) {
 					if(checkCollision(tilePt,CommonUtil.DOWN)){
@@ -416,12 +439,19 @@ public class GameCanvas extends Canvas {
 			}
 			drawScreen();
 		}
-
+		
+		/**
+		 * 方块变形，改变一种方块的形状
+		 */
 		private void changeTile() {
 			int[][] tmpTile;
+			//根据方块原始形状，获取可以变成的形状
 			List<int[][]> tileList = TileUtil.getInstance().getTiles(tilePtSrc);
 			int len = tileList.size();
+			//当前形状的索引加1，表示下一个形状的索引
 			int index = changeIndex+1;
+			
+			//索引超出范围，重置为原始的形状
 			if(index>len-1){
 				tmpTile = tileList.get(0);
 				if((x+getTileWidth(tmpTile))*TILE_SIZE  <= WIDTH 
@@ -429,7 +459,9 @@ public class GameCanvas extends Canvas {
 					changeIndex = 0;
 					tilePt = tmpTile;
 				}
-			}else{
+			}
+			//获取变形后的方块
+			else{
 				tmpTile = tileList.get(index);
 				if((x+getTileWidth(tmpTile))*TILE_SIZE  <= WIDTH 
 						&& !checkCollision(tmpTile,CommonUtil.DOWN)){
